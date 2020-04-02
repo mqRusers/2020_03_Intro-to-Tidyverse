@@ -1,0 +1,326 @@
+---
+title: "Intro to the Tidyverse"
+author: "Kate Dodds"
+date: "02/04/2020"
+output: html_document
+---
+
+# Getting started
+
+This is an R markdown document- it means that its easy to read and you can easily show people your reuslts and any extra info you may have about them - without them even having to know what R is.. 
+The MQ R users group will be havig an R markdown workshop hopefully next month. **Look out for it**!
+To begin with here are a few tips to help your scripts run as efficiently as possible. Its good topick up tips from different people and find the things that work/don't work for you. This way your code will continually improve and one day will be **Super sleek and efficient**. 
+
+I always include a "clear command" at the beginning of a script: 
+
+```{r }
+
+#clear workspace
+rm(list=ls())
+```
+
+Its then a good idea to check which working directory you're in and assign the correct one so that all your outputs and this script can be saved in the corerct place:
+```{r eval=FALSE }
+# check current directory
+getwd()
+# set new directory if necessary
+setwd(choose.dir()) # This opens a separate window for you to manually select the files
+#Otherwise if you want to physically add the path, copy and paste it from your file explorer.. just make sure you cehck the direction of the separators! 
+# This is a COMMON windows issue (use ctrl+f to open the find function, choose the selection, then replace all the "\" with "/"):
+path_1<-"D:/"
+setwd(path_1)
+# To check you're now in the right place, list files (both commands are similar)
+dir()
+list.files()
+```
+
+Next, its a good idea to check that the packages you plan to use are all installed. Remember to add any packages that you use later in the script to this beginning section, it will save you time in the long run.
+
+```{r }
+library(tidyverse)
+# if you haven't installed it yet.. then 
+# install.packages("tidyverse")
+```
+
+For those new to R, once you install a package it should always be on your computer. But you'll need to initialise it **EVERY** time you want to use it in a new session. You do this using either the "library()" or "require()" functions. 
+
+## Little Miss Tidy Verse (LMT)
+
+I am using material from a fantastic intro to the tidyverse presented through R ladies Sydney and developed by:
+*Danielle Navarro (@djnavarro)*
+The full details can be found here:
+(rladiessydney.org/littlemisstidyverse) 
+
+The goal in the LMT tutorial is to get you started doing DATA ANALYSIS in
+R as quickly as possible. So this will give you a brief overview of what's
+available, and what is possible - but to get to know the functions and packages 
+better and become more confident in using them .. you'll have to practice and 
+keep reading. 
+
+### Installation Check
+
+Let's just check that tidyverse is installed and properly loaded. This
+command will draw a pretty picture:
+
+```{r}
+pic <- USArrests %>% 
+  ggplot(aes(x = Murder, y = Assault, colour = UrbanPop)) +
+  geom_point() + 
+  geom_smooth(method = lm)
+
+plot(pic)
+```
+
+You should be looking at a plot displaying the number of arrests for murder
+(per 100,000 residents) in the US in 1973 against the number of arrests for
+assault. Each dot is a different US state, and the colour of the markers 
+reflects the percent of the populatiuon living in urban areas. Laid over the
+top is the best fitting regression line plus prediction interval.
+
+That's quite a lot to get from one short section of R code!
+
+Note that we didn't have to import any data to create that plot. 
+This is becuase a built in *example dataset* was used. These are REALLY useful for 
+testing ideas and functions and are often used in online examples of how to
+perform certain tasks. 
+
+### Error checking: 
+
+ - COMMON ISSUE #1: If you are looking at an error message that reads...
+     + *Error in (blah blah blah) could not find function "%>%"*
+     + It means you don't have tidyverse loaded. Try the library(tidyverse) 
+ - COMMON ISSUE #2: If you are looking at an error message that reads...
+    + *Error in library(tidyverse) : there is no package called tidyverse
+    + It means you don't have tidyverse *installed*. 
+
+
+#READR
+
+Reading and writing data in R. 
+This group of functions deals with **ALL** types of data - and is generally a lot easier to use than some of the base R versions of reading in data. In my experience, anyway.
+
+## Reding in a CSV file
+We'll do this from your current working directory.
+```{r}
+# load the tidy users data set
+data_file <- "./littlemisstidyverse-master/datasets/tidy_users.csv"  #NOTE the .csv part - often left out!
+tidy_users <- read_csv(data_file)
+```
+
+Now that the file is loaded here are some standard descriptions about it:
+These are the same as those we used a few weeks ago in the beginners class. 
+
+```{r}
+head(tidy_users)
+
+
+str(tidy_users)
+colnames(tidy_users)
+
+```
+
+#TIDY DATA
+
+Before we can use this family of packages, we need to check that the data is in **TIDY** format.
+This means: 
+
+ - Each variable forms a column. 
+ - Each observation forms a row. 
+ - Each type of observational unit forms a table. 
+
+There are many ways to fix up your data set, most involve moving from wide to narrow, using:
+ - gather 
+ - spread 
+ - pivot  (wider / longer)  
+ 
+More on this at the end of the WOrkshop..  
+
+# GGPLOT
+
+This is just a quick example with the loaded data frame to show you how ggplot works:
+
+```{r}
+# draw a simple scatter plot that displays the 
+# number of users at the website as a function of
+# the day number
+scatter <- tidy_users %>%
+  ggplot(aes(x = DayNum, y = Users)) + 
+  geom_point()
+print(scatter)
+
+```
+
+Note that this is not a GGPLOT tutorial, but we can take this further by adding a line: 
+
+``` {r}
+scatter+
+  geom_line()
+```
+```{r}
+print(scatter)
+```
+Do you notice that the line disappears when we try to print scatter?
+We need to **save** it to the scatter variable - otherwise its just a temporary change:
+
+```{r}
+scatter<- scatter +
+  geom_line()
+print(scatter)
+```
+
+Two quick additions to showcase the tip of GGPLOTs functionality
+```{r}
+scatter <- scatter +
+  theme_minimal()+
+  labs(title= "This is my Plot",
+       subtitle = "Its a summary of Tidy_users")
+print(scatter)
+```
+
+# Summarising your Data 
+
+The **DPLYR** Package is wonderful. Its is specifically for wrangling your data to do what you want it to do. There is usually a way to do any type of sorting or filtering of your data that you would like to do!
+
+```{r}
+# this example counts the total number of users each month,
+# and stores it in a NEW column named total_users
+monthly_users <- tidy_users %>%
+  group_by(Month) %>%
+  summarise(
+    total_users = sum(Users)
+  )
+# print the summary to the console (notice that we
+# don't have month names? We'll fix that later!!!)
+print(monthly_users)
+```
+
+Now that we've changed the dataframe a bit, lets look at the new one in a plot:
+```{r}
+# then make a bar graph
+month_pic <- monthly_users %>% 
+  ggplot(aes(x = Month, y = total_users)) + 
+  geom_col() 
+# ... and draw it
+plot(month_pic)
+```
+
+Another summary example:
+
+```{r}
+
+summ_data<-mtcars %>% 
+  group_by(cyl) %>%  #can group by more than 1
+  summarise(N=n(),
+            mean=mean(wt),
+            max=max(wt),
+            min=min(wt),
+            range=max-min,
+            sd=sd(wt),
+            var=var(wt)
+  )
+summ_data
+
+write.csv(summ_data,file="xxxxx.csv",row.names = F)  #depending on your preference
+save(summ_data,file="xxxxx.rda")  # you should now see this file in your folder. 
+```
+
+## PURRR
+
+Allows functional programming and looping. It generally replaces the "apply" group of functions using MAP. 
+More on this group of fucntions in Anikos previous Looping workshop 
+and also here: (https://r4ds.had.co.nz/iteration.html#the-map-functions)
+
+This is a bit more advanced - so if you don;t get it straight away don't worry. 
+You just need to know that this functionality exists in case you need it in the future. 
+
+```{r}
+plots <- mtcars %>% 
+  split(.$cyl) %>% 
+  map(~ggplot(., aes(x=mpg, y=wt))
+      + geom_point())
+
+paths <- stringr::str_c(names(plots), ".pdf")
+
+pwalk(list(paths, plots), ggsave,path = tempdir())
+#path = tempdir()
+```
+
+## FORCATS
+
+Amazing froup of functions for quick changes to CATEGORICAL data. 
+
+Often once you've used as.factor() to change things to factors, they still behave badly. 
+One of the most common problems is the order or level of the factor, especially when you're plotting. 
+You can change the levels with a range of tools from **FORCATS**.
+ - fct_reorder(): Reordering a factor by another variable. 
+ - fct_infreq(): Reordering a factor by the frequency of values. 
+ - fct_relevel(): Changing the order of a factor by hand. 
+ - fct_lump(): Collapsing the least/most frequent values of a factor into another
+ 
+```{r}
+thing<-mtcars
+thing$cyl<- as.factor(thing$cyl)
+levels(thing$cyl)
+thing$cyl<-fct_recode(thing$cyl,"small"="4","med"="6","big"="8")
+str(thing)
+levels(thing$cyl)
+```
+
+
+## Pivot
+
+Pivot_longer() and pivot_wider() are the functions used to manipulate your data into 
+a more useful format. For Tidy data, you'll usually need to use the pivot_longer()
+funciton - as most ield data is collected in a "wide" format. 
+Sometimes - in order to create summaries, or to use the data in other programmes you'll
+need to make your long data wider - and thats when you can use pivot_wider(). 
+There are a LOT of great examples and detailed descriptions of both of these functions
+here: https://tidyr.tidyverse.org/articles/pivot.html 
+
+FOr those of you who have been usign R for a while - these functions take over from:
+gather(), spread(), melt() and dcast().. most of which you can still use if you need
+to, and which you may come across in some of the help pages on Stackexchange. 
+
+We'll do an example with pivot_longer() today, with one of the built in datasets. 
+
+
+``` {r}
+# Pivot_longer() examples from https://tidyr.tidyverse.org/articles/pivot.html
+# using built in data base: relig_income
+
+# first lets see what the dataset looks like:
+View(relig_income)
+str(relig_income)
+
+#not a tidy dataset because - income categories are spread out across columns,
+# with the category detail in the heading. We need it to be longer and more simple 
+# to be able to use it in the tidyverse context - this also makes it easier to 
+# use the dataset for stats and models. 
+
+# The three variables in this dataset are: RELIGION (rows), INCOME (col names), and 
+# COUNT (cell values). 
+relig_income %>%
+  pivot_longer(-religion, names_to = "income", values_to = "count")
+# this means.. whithin the relig_income dataset, use ALL columns EXCEPT (thats 
+# what the - is) religion, take the column names and put them into a new column
+# called "income" , then take the vlaues from those columns and put those in another
+# new column called "count". 
+
+# you should now be left with 3 columns: religion, income and count.. rather than the 
+# 11 we had in the original dataset. 
+
+# if we were happy with this format we could "save" it by assigning it to a variable:
+long_relig <- relig_income %>%
+  pivot_longer(-religion, names_to = "income", values_to = "counts")
+
+str(long_relig)  
+
+# now we can ue this with other tidyverse packages, like GGPLOT: 
+long_relig %>%
+  group_by (income) %>%
+  ggplot(aes(x=income, y=counts, fill = religion)) +
+  geom_col(position = "dodge") 
+
+```
+
+
